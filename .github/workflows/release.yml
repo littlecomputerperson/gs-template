@@ -92,6 +92,17 @@ jobs:
           BIN=build/Demo.app/Contents/MacOS/Demo
           dylibbundler -od -b -x "$BIN" -d build/Demo.app/Contents/Frameworks/ -p @executable_path/../Frameworks/
 
+          # Homebrew's "sdl2" is actually sdl2-compat, a thin shim that loads
+          # the real SDL3 library at runtime via dlopen rather than a normal
+          # linked dependency -- dylibbundler only follows otool -L
+          # dependencies, so it never bundles SDL3, and the app fails at
+          # launch with "Failed loading SDL3 library." sdl2-compat's dlopen
+          # search (per its own embedded strings) includes
+          # @loader_path/libSDL3.dylib, i.e. right next to libSDL2, which is
+          # exactly where dylibbundler puts things -- so just copy it there.
+          cp "$(brew --prefix sdl3)/lib/libSDL3.0.dylib" build/Demo.app/Contents/Frameworks/libSDL3.dylib
+          codesign --force --sign - build/Demo.app/Contents/Frameworks/libSDL3.dylib
+
           # dylibbundler leaves one duplicate LC_RPATH per original Homebrew
           # lib dir it rewrote (all pointing at the same new path), which
           # makes dyld refuse to load the binary ("duplicate LC_RPATH").
