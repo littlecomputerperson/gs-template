@@ -145,10 +145,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vcpkg/installed
-          key: vcpkg-x64-windows-static-sdl2-${{ runner.os }}
+          key: vcpkg-x64-windows-sdl2-${{ runner.os }}
 
-      - name: Install SDL2 (static)
-        run: .\vcpkg\vcpkg.exe install sdl2:x64-windows-static sdl2-mixer:x64-windows-static
+      - name: Install SDL2
+        run: .\vcpkg\vcpkg.exe install sdl2:x64-windows sdl2-mixer:x64-windows
 
       - name: Install pkg-config
         run: choco install pkgconfiglite -y
@@ -160,12 +160,24 @@ jobs:
       - name: Configure & build
         shell: pwsh
         run: |
-          $env:PKG_CONFIG_PATH = "$pwd\vcpkg\installed\x64-windows-static\lib\pkgconfig"
+          $env:PKG_CONFIG_PATH = "$pwd\vcpkg\installed\x64-windows\lib\pkgconfig"
           cmake -B build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$pwd\vcpkg\scripts\buildsystems\vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static
+            -DVCPKG_TARGET_TRIPLET=x64-windows
           cmake --build build
+
+      - name: Copy runtime DLLs next to the executable
+        shell: pwsh
+        run: |
+          # SDL2_mixer's static .lib pulls in a long, version-dependent chain
+          # of optional codec libs (FLAC, mpg123, opus, vorbis, wavpack, ...)
+          # that pkg-config only exposes via Libs.private, which the shared
+          # CMakeLists.txt doesn't request. Dynamic linking sidesteps that
+          # entirely: copy every DLL vcpkg produced and let the loader
+          # resolve what's actually needed, same as the AppImage/dylibbundler
+          # approach on Linux/macOS.
+          Copy-Item vcpkg\installed\x64-windows\bin\*.dll build\
 
       - name: Smoke test
         shell: pwsh
@@ -180,7 +192,7 @@ jobs:
 
       - name: Zip the build output
         shell: pwsh
-        run: Compress-Archive -Path build\Demo.exe, build\data, build\*.ini -DestinationPath Demo-windows-x64.zip
+        run: Compress-Archive -Path build\Demo.exe, build\*.dll, build\data, build\*.ini -DestinationPath Demo-windows-x64.zip
 
       - uses: actions/upload-artifact@v4
         with:
