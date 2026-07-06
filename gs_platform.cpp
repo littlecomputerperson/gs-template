@@ -25,7 +25,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#ifndef GS_PLATFORM_WINDOWS
+    #include <unistd.h> // Only the non-Windows implementation below (guarded) needs this.
+#endif
 #include <iostream>
 //==============================================================================================
 

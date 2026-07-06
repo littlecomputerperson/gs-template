@@ -53,7 +53,15 @@ jobs:
       - name: Smoke test (headless)
         run: |
           sudo apt-get install -y -qq xvfb
-          xvfb-run -a --server-args='-screen 0 1024x768x24' timeout 6 ./Demo-linux-x86_64.AppImage --appimage-extract-and-run > run.log 2>&1; code=$?
+
+          # GH Actions runs this as `bash -e`, so a non-zero exit from the
+          # command below would abort the step before we get to check it
+          # ourselves. Disable errexit just for this line.
+          set +e
+          xvfb-run -a --server-args='-screen 0 1024x768x24' timeout 6 ./Demo-linux-x86_64.AppImage --appimage-extract-and-run > run.log 2>&1
+          code=$?
+          set -e
+
           cat run.log
           # 124 = still running when the timeout killed it, i.e. it launched fine
           if [ "$code" -ne 124 ] && [ "$code" -ne 0 ]; then
