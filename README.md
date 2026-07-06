@@ -474,7 +474,12 @@ GameInit() → GameLoop() → GameShutdown()
 
 ## Template Version History
 
-**v1.2.2** (Current)
+**v1.2.3** (Current)
+- Fixed real Windows build failures (missing native Win32 GS_Platform bridge, missing WIN32 subsystem keyword)
+- Fixed macOS release builds crashing with "Failed loading SDL3 library" (Homebrew's sdl2-compat shim)
+- Automated cross-platform release builds via GitHub Actions
+
+**v1.2.2**
 - Complete game template with all core systems
 - Cross-platform support via SDL2
 - CMake build system
