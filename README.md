@@ -480,7 +480,10 @@ GameInit() → GameLoop() → GameShutdown()
 
 _The current version number is set by `GAME_VERSION` in [`gs_demo.h`](gs_demo.h)._
 
-**v1.2.4** (Current)
+**v1.2.5** (Current)
+- Fixed ini/hiscore files not loading or saving when launched from a directory other than the executable's own
+
+**v1.2.4**
 - Fixed real Windows build failures (missing native Win32 GS_Platform bridge, missing WIN32 subsystem keyword)
 - Fixed macOS release builds crashing with "Failed loading SDL3 library" (Homebrew's sdl2-compat shim)
 - Automated cross-platform release builds via GitHub Actions
